@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Mobile-first viewport: prevents zoom on input focus -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="BITS ARENA – Rule the rankings. Own the campus." />
+  <meta name="theme-color" content="#020408" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>{% block title %}BITS ARENA{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Base CSS -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" id="site-header">
+    <div class="header-scan-line"></div>
+    <div class="header-inner">
+
+      <!-- Brand Logo -->
+      <div class="brand" id="brand-logo">
+        <a href="{% url 'arena:home' %}" class="brand-logo-link" aria-label="BITS ARENA home">
+          <span class="brand-logo-text" id="brand-logo-text">BITS ARENA</span>
+        </a>
+      </div>
+
+      <!-- Right slot -->
+      <div class="header-right">
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'players:logout' %}" id="logout-form" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" class="logout-btn" id="logout-btn" aria-label="Log out">
+            <span class="logout-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+            </span>
+            <span class="logout-label">Logout</span>
+          </button>
+        </form>
+        {% endif %}
+        {% block header_right %}{% endblock %}
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content" id="main-content">
+    {% if messages %}
+      <div class="messages-container" style="padding: 1rem 1rem 0; width: 100%; max-width: 560px; margin: 0 auto;">
+        {% for message in messages %}
+          <div class="message-alert message-{{ message.tags }}" style="background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3); color: #00f5ff; padding: 0.8rem; border-radius: 8px; font-family: var(--font-ui); font-size: 0.85rem; text-align: center; margin-bottom: 0.5rem; letter-spacing: 0.05em; backdrop-filter: blur(8px);">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ===== BOTTOM NAV BAR ===== -->
+  <nav class="bottom-nav" id="bottom-nav" role="navigation" aria-label="Main navigation">
+    <div class="bottom-nav-inner">
+
+      <!-- Home -->
+      <a href="{% url 'arena:home' %}" class="bnav-item {% block nav_home %}{% endblock %}" id="nav-home">
+        <span class="bnav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </span>
+        <span class="bnav-label">Home</span>
+        <span class="bnav-active-dot"></span>
+      </a>
+
+      <!-- Match Hub (featured — semi-circle from screen bottom) -->
+      <a href="{% url 'arena:match_hub' %}" class="bnav-item bnav-featured {% block nav_match %}{% endblock %}" id="nav-match-hub">
+        <span class="bnav-icon">
+          <!-- Trophy icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9H4a2 2 0 0 0-2 2v1a5 5 0 0 0 5 5"/>
+            <path d="M18 9h2a2 2 0 0 1 2 2v1a5 5 0 0 1-5 5"/>
+            <path d="M8 21h8"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+            <path d="M7 4h10v9a5 5 0 0 1-10 0V4z"/>
+          </svg>
+          <span class="bnav-fab-label">Match Hub</span>
+        </span>
+      </a>
+
+      <!-- Profile -->
+      <a href="{% url 'arena:profile' %}" class="bnav-item {% block nav_profile %}{% endblock %}" id="nav-profile">
+        <span class="bnav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <span class="bnav-label">Profile</span>
+        <span class="bnav-active-dot"></span>
+      </a>
+
+    </div>
+  </nav>
+
+  <!-- Base JS -->
+  <script src="{% static 'js/base.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

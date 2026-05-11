@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+{% block title %}Create Match — BITS ARENA{% endblock %}
+{% block nav_match %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Page wrapper ────────────────────────────────────────────────────── */
+  .cm-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 7rem;
+  }
+
+  .cm-heading {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-align: center;
+    margin-bottom: 0.4rem;
+    background: linear-gradient(135deg, #00f5ff 0%, #7b2fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+  }
+
+  .cm-sub {
+    font-family: var(--font-ui);
+    color: rgba(160, 200, 240, 0.5);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+
+  /* ── Glass card ──────────────────────────────────────────────────────── */
+  .cm-card {
+    width: 100%;
+    max-width: 520px;
+    background: rgba(10, 20, 40, 0.75);
+    border: 1px solid rgba(0, 245, 255, 0.18);
+    border-radius: 1.25rem;
+    padding: 2rem 1.75rem 2.25rem;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+      0 0 30px rgba(0, 245, 255, 0.07),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cm-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ── Form groups ─────────────────────────────────────────────────────── */
+  .form-group {
+    margin-bottom: 1.4rem;
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: rgba(0, 245, 255, 0.75);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-input {
+    width: 100%;
+    background: rgba(0, 20, 40, 0.7);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 0.6rem;
+    color: #e0f4ff;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    padding: 0.7rem 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .form-input:focus {
+    border-color: #00f5ff;
+    box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.12);
+  }
+
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300f5ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    background-size: 1.1rem;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+
+  /* colour the <option> elements inside the dark select */
+  .form-select option {
+    background: #081828;
+    color: #e0f4ff;
+  }
+
+  /* ── Invite-only opponent search ─────────────────────────────────────── */
+  #opponent-search-wrap {
+    display: none;
+    /* shown by JS when invite_only selected */
+    margin-top: 1.4rem;
+    position: relative;
+  }
+
+  #opponent-search-wrap.visible {
+    display: block;
+  }
+
+  .bits-search-input {
+    padding-left: 2.6rem !important;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: rgba(0, 245, 255, 0.5);
+  }
+
+  /* ── Error messages ──────────────────────────────────────────────────── */
+  .field-errors {
+    list-style: none;
+    padding: 0;
+    margin: 0.4rem 0 0;
+  }
+
+  .field-errors li {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: #ff4d88;
+    letter-spacing: 0.05em;
+  }
+
+  .form-help {
+    font-family: var(--font-ui);
+    font-size: 0.75rem;
+    color: rgba(160, 200, 240, 0.45);
+    margin-top: 0.45rem;
+    letter-spacing: 0.05em;
+    padding-left: 0.2rem;
+  }
+
+  /* ── Divider ─────────────────────────────────────────────────────────── */
+  .cm-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.18), transparent);
+    margin: 1.6rem 0;
+  }
+
+  /* ── Submit button ───────────────────────────────────────────────────── */
+  .cm-submit {
+    display: block;
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, #00c8ff 0%, #7b2fff 100%);
+    border: none;
+    border-radius: 0.7rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+  }
+
+  .cm-submit:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+  }
+
+  .cm-submit:active {
+    transform: translateY(0);
+  }
+
+  /* ── Cancel link ─────────────────────────────────────────────────────── */
+  .cm-cancel {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: rgba(160, 200, 240, 0.45);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .cm-cancel:hover {
+    color: rgba(0, 245, 255, 0.7);
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="cm-page">
+
+  <h1 class="cm-heading">Create Match</h1>
+  <p class="cm-sub">Issue your challenge to the arena</p>
+
+  <div class="cm-card">
+    <form method="post" id="create-match-form" novalidate>
+      {% csrf_token %}
+
+      <!-- ── Game ──────────────────────────────────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.game.id_for_label }}">Game</label>
+        {{ form.game }}
+        {% if form.game.errors %}
+        <ul class="field-errors">
+          {% for e in form.game.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <!-- ── Scheduled time ────────────────────────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.played_at.id_for_label }}">Scheduled Date &amp; Time</label>
+        {{ form.played_at }}
+        {% if form.played_at.errors %}
+        <ul class="field-errors">
+          {% for e in form.played_at.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <!-- ── Location ──────────────────────────────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.location.id_for_label }}">Location</label>
+        {{ form.location }}
+        {% if form.location.help_text %}
+        <p class="form-help">{{ form.location.help_text }}</p>
+        {% endif %}
+        {% if form.location.errors %}
+        <ul class="field-errors">
+          {% for e in form.location.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <!-- ── Match type ─────────────────────────────────────────────────── -->
+      <div class="form-group">
+        <label class="form-label" for="{{ form.invite_type.id_for_label }}">Match Type</label>
+        {{ form.invite_type }}
+        {% if form.invite_type.errors %}
+        <ul class="field-errors">
+          {% for e in form.invite_type.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <!-- ── Duration & Scoring (Dynamic Labels) ────────────────────────── -->
+      <div class="form-group" id="duration-wrap" style="display: none;">
+        <label class="form-label" for="{{ form.duration_unit_number.id_for_label }}" id="duration-label">Duration
+          Unit</label>
+        {{ form.duration_unit_number }}
+        {% if form.duration_unit_number.errors %}
+        <ul class="field-errors">
+          {% for e in form.duration_unit_number.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <div class="form-group" id="scoring-wrap" style="display: none;">
+        <label class="form-label" for="{{ form.scoring_unit_number.id_for_label }}" id="scoring-label">Scoring
+          Unit</label>
+        {{ form.scoring_unit_number }}
+        {% if form.scoring_unit_number.errors %}
+        <ul class="field-errors">
+          {% for e in form.scoring_unit_number.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      {% if form.invite_type.value == 'invite_only' or form.opponent_bits_id.value %}
+      <div id="opponent-search-wrap" class="visible">
+        {% else %}
+        <div id="opponent-search-wrap">
+          {% endif %}
+          <div class="form-group" style="position:relative; margin-bottom:0;">
+            <label class="form-label" for="opponent-bits-id">Opponent's BITS ID</label>
+            <span class="search-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </span>
+            {{ form.opponent_bits_id }}
+            {% if form.opponent_bits_id.errors %}
+            <ul class="field-errors" style="margin-top:0.4rem;">
+              {% for e in form.opponent_bits_id.errors %}<li>{{ e }}</li>{% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="cm-divider"></div>
+
+        <button type="submit" class="cm-submit" id="create-match-btn">
+          ⚔&nbsp; Launch Challenge
+        </button>
+    </form>
+
+    <a href="{% url 'arena:match_hub' %}" class="cm-cancel">← Back to Match Hub</a>
+  </div>
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+  (function () {
+    const inviteSelect = document.getElementById('id-invite-type');
+    const searchWrap = document.getElementById('opponent-search-wrap');
+    const bitsInput = document.getElementById('opponent-bits-id');
+
+    const gameSelect = document.getElementById('id-game');
+    const durationWrap = document.getElementById('duration-wrap');
+    const durationLabel = document.getElementById('duration-label');
+    const durationInput = document.getElementById('id-duration');
+    const scoringLabel = document.getElementById('scoring-label');
+    const scoringWrap = document.getElementById('scoring-wrap');
+    const scoringInput = document.getElementById('id-scoring');
+
+    let gamesData = {};
+    try {
+      gamesData = JSON.parse('{{ games_data|escapejs }}' || '{}');
+    } catch (e) {
+      console.error(e);
+    }
+
+    function toggleSearch() {
+      const isInvite = inviteSelect && inviteSelect.value === 'invite_only';
+      if (isInvite) {
+        searchWrap.classList.add('visible');
+        bitsInput.required = true;
+      } else {
+        searchWrap.classList.remove('visible');
+        bitsInput.required = false;
+        bitsInput.value = '';
+      }
+    }
+
+    function toggleUnits() {
+      if (!gameSelect || !gamesData) return;
+      const gameId = gameSelect.value;
+      const gData = gamesData[gameId];
+
+      if (gData) {
+        if (!gData.has_standard_scoring && scoringWrap && scoringLabel) {
+          scoringWrap.style.display = 'block';
+          if (scoringInput) scoringInput.required = true;
+          scoringLabel.textContent = gData.scoring_unit || 'Scoring Unit Number';
+        } else if (scoringWrap) {
+          scoringWrap.style.display = 'none';
+          if (scoringInput) {
+            scoringInput.required = false;
+            scoringInput.value = '';
+          }
+        }
+
+        if (gData.requires_duration && durationWrap && durationLabel) {
+          durationWrap.style.display = 'block';
+          if (durationInput) durationInput.required = true;
+          durationLabel.textContent = gData.duration_unit || 'Duration Unit Number';
+        } else if (durationWrap) {
+          durationWrap.style.display = 'none';
+          if (durationInput) {
+            durationInput.required = false;
+            durationInput.value = '';
+          }
+        }
+      }
+    }
+
+    if (inviteSelect) {
+      inviteSelect.addEventListener('change', toggleSearch);
+      toggleSearch();   // run once on page load (respects re-render after POST error)
+    }
+
+    if (gameSelect) {
+      gameSelect.addEventListener('change', toggleUnits);
+      toggleUnits();
+    }
+  })();
+</script>
+{% endblock %}

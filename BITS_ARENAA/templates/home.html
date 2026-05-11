@@ -1,0 +1,560 @@
+{% extends "base.html" %}
+
+{% block title %}Home — BITS ARENA{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+<section class="hero" id="hero-section" style="min-height: auto; padding: 4rem 0 2rem;">
+  <div class="hero-glow"></div>
+  <h1 class="hero-title neon-text">BITS ARENA</h1>
+</section>
+
+<section class="welcome-section" id="welcome-section">
+  <div class="player-profile-header">
+    <div class="profile-avatar-container">
+      <img src="{{ request.user.get_avatar_url }}" alt="{{ request.user.username }}" class="welcome-avatar">
+      <div class="avatar-glow"></div>
+    </div>
+    <h2 class="welcome-text">Welcome, {{ request.user.username }}</h2>
+    <span class="player-bits-tag">{{ request.user.bits_id }}</span>
+  </div>
+
+  <div class="player-stats-grid">
+    {% for stat in user_stats %}
+    <div class="stat-card">
+      <div class="stat-card-inner">
+        <span class="stat-game-name">{{ stat.game.name }}</span>
+        <div class="stat-divider"></div>
+        <div class="stat-values">
+          <div class="stat-value-group">
+            <span class="stat-label">Rating</span>
+            <span class="stat-number rating-color">{{ stat.rating|floatformat:1 }}</span>
+          </div>
+          <div class="stat-value-group">
+            <span class="stat-label">Campus Rank</span>
+            <span class="stat-number rank-color">#{{ stat.rank }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="no-stats-card">
+      <p>No campus ratings recorded yet.</p>
+      <a href="{% url 'arena:match_hub' %}" class="btn-primary-sm">Find a Match</a>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="leaderboards-section" id="leaderboards-section">
+  <div class="section-glow"></div>
+  <h2 class="section-title neon-text">Leaderboards</h2>
+  <p class="section-subtitle">Top competitors across the campus</p>
+
+  <div class="leaderboards-grid">
+    {% for game in games %}
+    <div class="game-card">
+      <div class="game-card-header">
+        <h3 class="game-title">{{ game.name }}</h3>
+      </div>
+      <div class="game-card-body">
+        {% if game.leaderboard %}
+        <div class="leaderboard-list">
+          {% for rating_obj in game.leaderboard|slice:":5" %}
+          <div
+            class="leaderboard-row {% if forloop.counter == 1 %}rank-1{% elif forloop.counter == 2 %}rank-2{% elif forloop.counter == 3 %}rank-3{% endif %}">
+            <div class="rank-col">
+              <span class="rank-number">#{{ forloop.counter }}</span>
+            </div>
+            <div class="player-col">
+              <img src="{{ rating_obj.player.get_avatar_url }}" alt="{{ rating_obj.player.username }}"
+                class="leaderboard-avatar">
+              <div class="player-info">
+                <span class="player-name">{{ rating_obj.player.username }}</span>
+                <span class="player-bits-id">{{ rating_obj.player.bits_id }}</span>
+              </div>
+            </div>
+            <div class="rating-col">
+              <span class="rating-value">{{ rating_obj.rating|floatformat:1 }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-leaderboard">
+          <p>No active rankings for this game yet.</p>
+          <a href="{% url 'arena:match_hub' %}" class="btn-sm-outline">Start a Match</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="no-games-state">
+      <p>No games currently available.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* Fills visible area between header and bottom nav */
+    min-height: calc(100svh - var(--header-h) - var(--bnav-h) - var(--bnav-safe));
+    padding: 2rem 0;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(480px, 120%);
+    height: 260px;
+    background: radial-gradient(ellipse, rgba(0, 245, 255, 0.07) 0%, rgba(176, 0, 255, 0.05) 50%, transparent 75%);
+    pointer-events: none;
+  }
+
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 10vw, 4rem);
+    /* smaller on phone */
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-sub {
+    font-family: var(--font-ui);
+    font-size: clamp(0.7rem, 3.5vw, 0.95rem);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(0, 245, 255, 0.6);
+    white-space: nowrap;
+    margin-bottom: 1rem;
+  }
+
+  .hero-desc {
+    font-size: 0.875rem;
+    color: rgba(180, 210, 240, 0.6);
+    max-width: 280px;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-direction: column;
+    /* stack vertically on mobile */
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  /* Tablet+ — side by side */
+  @media (min-width: 480px) {
+    .hero-desc {
+      max-width: 380px;
+      font-size: 0.95rem;
+    }
+
+    .hero-cta {
+      flex-direction: row;
+      max-width: none;
+      justify-content: center;
+    }
+
+    .btn-primary,
+    .btn-outline {
+      width: auto;
+    }
+  }
+
+  .leaderboards-section {
+    position: relative;
+    padding: 4rem 1.5rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 300px;
+    background: radial-gradient(ellipse at top, rgba(123, 47, 255, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 6vw, 2.5rem);
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-subtitle {
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    color: rgba(180, 210, 240, 0.6);
+    text-align: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+  }
+
+  .leaderboards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    width: 100%;
+  }
+
+  .game-card {
+    background: rgba(10, 20, 40, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 245, 255, 0.15);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .game-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(0, 245, 255, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 245, 255, 0.1);
+  }
+
+  .game-card-header {
+    background: linear-gradient(90deg, rgba(123, 47, 255, 0.15), rgba(0, 245, 255, 0.05));
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 245, 255, 0.15);
+  }
+
+  .game-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
+  }
+
+  .game-card-body {
+    padding: 1rem;
+  }
+
+  .leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .leaderboard-row {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .leaderboard-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .rank-col {
+    width: 40px;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .rank-1 .rank-col {
+    color: #ffd700;
+    font-size: 1.2rem;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+
+  .rank-2 .rank-col {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+  }
+
+  .rank-3 .rank-col {
+    color: #cd7f32;
+    text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+  }
+
+  .player-col {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .leaderboard-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .player-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .player-name {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-bits-id {
+    font-size: 0.65rem;
+    color: rgba(180, 210, 240, 0.5);
+    letter-spacing: 0.05em;
+  }
+
+  .rating-col {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #00f5ff;
+    text-shadow: 0 0 10px rgba(0, 245, 255, 0.2);
+  }
+
+  .rank-1 .rating-col {
+    color: #00ffa2;
+    text-shadow: 0 0 15px rgba(0, 255, 162, 0.3);
+  }
+
+  .empty-leaderboard {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: rgba(180, 210, 240, 0.5);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+  }
+
+  .btn-sm-outline {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(0, 245, 255, 0.8);
+    border: 1px solid rgba(0, 245, 255, 0.3);
+    border-radius: 2rem;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .btn-sm-outline:hover {
+    background: rgba(0, 245, 255, 0.1);
+    color: #00f5ff;
+    border-color: #00f5ff;
+  }
+
+  .no-games-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: rgba(180, 210, 240, 0.4);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+  }
+
+  .welcome-section {
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    padding: 2.5rem 2rem;
+    background: rgba(10, 20, 40, 0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(0, 245, 255, 0.15);
+    border-radius: 1.5rem;
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.05);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .player-profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .profile-avatar-container {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .welcome-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid #00f5ff;
+    box-shadow: 0 0 25px rgba(0, 245, 255, 0.3);
+    background: rgba(0,0,0,0.3);
+  }
+
+  .avatar-glow {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 15px rgba(0, 245, 255, 0.5);
+    pointer-events: none;
+  }
+
+  .welcome-text {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    color: #fff;
+    margin-bottom: 0.25rem;
+  }
+
+  .player-bits-tag {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: rgba(0, 245, 255, 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .player-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    max-width: 540px;
+  }
+
+  .stat-card {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 245, 255, 0.3);
+  }
+
+  .stat-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-game-name {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-divider {
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #7b2fff, transparent);
+    margin: 0.75rem 0;
+  }
+
+  .stat-values {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 0.5rem;
+  }
+
+  .stat-value-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: rgba(180, 210, 240, 0.4);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-number {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.15rem;
+  }
+
+  .rating-color {
+    color: #00f5ff;
+    text-shadow: 0 0 10px rgba(0, 245, 255, 0.2);
+  }
+
+  .rank-color {
+    color: #ff007f;
+    text-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+  }
+
+  .no-stats-card {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    text-align: center;
+    color: rgba(180, 210, 240, 0.5);
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+  }
+
+  .btn-primary-sm {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.5rem 1.5rem;
+    background: linear-gradient(135deg, #00c8ff 0%, #7b2fff 100%);
+    border-radius: 2rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    box-shadow: 0 0 15px rgba(0, 200, 255, 0.2);
+  }
+</style>
+{% endblock %}

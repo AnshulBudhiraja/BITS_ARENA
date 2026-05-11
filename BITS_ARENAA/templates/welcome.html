@@ -1,0 +1,240 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="BITS ARENA – Rule the rankings. Own the campus." />
+  <meta name="theme-color" content="#020408" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>BITS ARENA — Welcome</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Outfit:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; height: 100svh;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* ── Background ── */
+    body {
+      background-color: #020408;
+      color: #c8d8f0;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      /* Grid lines */
+      background-image:
+        linear-gradient(rgba(0,245,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+
+      /* iOS safe area */
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+               env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    }
+
+    /* ── Ambient glow blobs ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -10%; left: 50%;
+      transform: translateX(-50%);
+      width: 500px; height: 400px;
+      background: radial-gradient(ellipse, rgba(0,245,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -10%; left: 50%;
+      transform: translateX(-50%);
+      width: 400px; height: 300px;
+      background: radial-gradient(ellipse, rgba(176,0,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── Scan-line across top ── */
+    .scan-line {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #00f5ff, #b000ff);
+      animation: scanPulse 3s ease-in-out infinite;
+    }
+    @keyframes scanPulse {
+      0%, 100% { opacity: 0.6; }
+      50%       { opacity: 1; box-shadow: 0 0 12px rgba(0,245,255,0.7); }
+    }
+
+    /* ── Welcome wrapper ── */
+    .welcome-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 1.5rem 1.5rem 2rem;
+      width: 100%;
+      max-width: 440px;
+      gap: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Logo ── */
+    .welcome-logo-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 10vw, 3.5rem);
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      white-space: nowrap;
+      background: linear-gradient(90deg, #00f5ff, #e040fb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 10px rgba(0,245,255,0.5))
+              drop-shadow(0 0 24px rgba(176,0,255,0.3));
+      animation: logoPulse 4s ease-in-out infinite;
+      margin-bottom: 0.5rem;
+    }
+    @keyframes logoPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 10px rgba(0,245,255,0.5)) drop-shadow(0 0 24px rgba(176,0,255,0.3));
+      }
+      50% {
+        filter: drop-shadow(0 0 18px rgba(0,245,255,0.75)) drop-shadow(0 0 36px rgba(176,0,255,0.5));
+      }
+    }
+
+    /* ── Tagline ── */
+    .welcome-tagline {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(0.7rem, 3vw, 0.85rem);
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(0, 245, 255, 0.55);
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── Divider ── */
+    .welcome-divider {
+      width: 48px;
+      height: 2px;
+      background: linear-gradient(90deg, #00f5ff, #b000ff);
+      border-radius: 2px;
+      margin: 0 auto 2rem;
+      box-shadow: 0 0 8px rgba(0,245,255,0.4);
+    }
+
+    /* ── CTA buttons ── */
+    .welcome-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .btn-signup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 52px;
+      width: 100%;
+      background: linear-gradient(135deg, #00f5ff 0%, #b000ff 100%);
+      color: #000;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 0 16px rgba(0,245,255,0.4), 0 0 32px rgba(176,0,255,0.2);
+      transition: transform 0.15s, box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-signup:active { transform: scale(0.96); }
+
+    .btn-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 52px;
+      width: 100%;
+      background: transparent;
+      border: 1.5px solid rgba(0, 245, 255, 0.4);
+      color: #00f5ff;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-radius: 12px;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-login:active {
+      background: rgba(0,245,255,0.07);
+      border-color: rgba(0,245,255,0.7);
+      transform: scale(0.96);
+    }
+
+    /* ── Footer note ── */
+    .welcome-footer {
+      position: fixed;
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(140, 180, 220, 0.25);
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scan-line"></div>
+
+  <div class="welcome-wrap" id="welcome-wrap">
+
+    <!-- Logo -->
+    <span class="welcome-logo-text" id="welcome-logo">BITS ARENA</span>
+
+    <!-- Tagline -->
+    <p class="welcome-tagline">Rule the rankings. Own the campus.</p>
+
+    <div class="welcome-divider"></div>
+
+    <!-- CTA buttons -->
+    <div class="welcome-actions" id="welcome-actions">
+      <a href="{% url 'players:signup' %}" class="btn-signup" id="btn-get-started">
+        Get Started
+      </a>
+      <a href="{% url 'players:login' %}" class="btn-login" id="btn-log-in">
+        Log In
+      </a>
+    </div>
+
+  </div>
+
+  <p class="welcome-footer">BITS ARENA &bull; Campus Sports Platform</p>
+
+</body>
+</html>

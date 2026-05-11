@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — BITS ARENA{% endblock %}
+{% block nav_profile %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .profile-container {
+    padding: 1.5rem 0 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  /* --- Profile Header --- */
+  .profile-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .avatar-ring {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: var(--grad-primary);
+    padding: 3px;
+    box-shadow: var(--glow-cyan);
+    animation: rotateGlow 8s linear infinite;
+  }
+
+  @keyframes rotateGlow {
+    0% {
+      filter: hue-rotate(0deg);
+    }
+
+    100% {
+      filter: hue-rotate(360deg);
+    }
+  }
+
+  .avatar-img-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--bg-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid rgba(0, 245, 255, 0.1);
+  }
+
+  .avatar-img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.4));
+  }
+
+  .player-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .player-name {
+    font-size: clamp(2rem, 8vw, 2.8rem);
+    margin: 0;
+    letter-spacing: 0.02em;
+    font-weight: 900;
+  }
+
+  .bits-id-badge {
+    background: rgba(0, 245, 255, 0.08);
+    border: 1px solid var(--border-bright);
+    color: var(--neon-cyan);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    display: inline-block;
+    margin: 0 auto;
+    box-shadow: 0 0 15px rgba(0, 245, 255, 0.15);
+  }
+
+  /* --- Stats Section --- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .game-card {
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    text-align: center;
+    border: 1px solid var(--border-subtle);
+    background: rgba(13, 25, 41, 0.6);
+    backdrop-filter: blur(12px);
+    border-radius: 16px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .game-card:active {
+    transform: scale(0.97);
+    border-color: var(--neon-cyan);
+  }
+
+  .game-name {
+    font-size: 0.75rem;
+    color: rgba(160, 200, 240, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+  }
+
+  .game-rating {
+    font-size: 2.2rem;
+    color: #fff;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .rating-label {
+    font-size: 0.6rem;
+    color: var(--neon-cyan);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: var(--grad-primary);
+    border-radius: 2px;
+  }
+
+  /* Empty State */
+  .empty-state {
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    border: 1px dashed rgba(0, 245, 255, 0.2);
+    border-radius: 20px;
+    background: rgba(0, 245, 255, 0.02);
+  }
+
+  .empty-state p {
+    color: rgba(160, 200, 240, 0.5);
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    max-width: 240px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+
+  <!-- PROFILE HEADER -->
+  <header class="profile-header">
+    <div class="avatar-ring">
+      <div class="avatar-img-container">
+        <img src="{{ player.get_avatar_url }}" alt="{{ player.username }}" class="avatar-img">
+      </div>
+    </div>
+
+    <div class="player-identity">
+      <h1 class="neon-text player-name">{{ player.username }}</h1>
+      <div class="bits-id-badge">{{ player.bits_id }}</div>
+    </div>
+  </header>
+
+  <!-- RATINGS SECTION -->
+  <section class="ratings-section">
+    <h2 class="section-title">Ratings</h2>
+
+    {% if ratings %}
+    <div class="stats-grid">
+      {% for rating in ratings %}
+      <div class="game-card">
+        <span class="game-name">{{ rating.game.name }}</span>
+        <span class="game-rating score">{{ rating.rating|floatformat:0 }}</span>
+        <span class="rating-label">ELO Level</span>
+        <div style="width: 30px; height: 1px; background: rgba(0, 245, 255, 0.2); margin: 0.2rem 0;"></div>
+        <span style="font-family: var(--font-display); font-size: 0.95rem; color: #ff007f; font-weight: 800; text-shadow: 0 0 10px rgba(255, 0, 127, 0.2);">Rank #{{ rating.rank }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <p>Your legend hasn't begun yet. Complete a match to earn your first rating.</p>
+      <a href="{% url 'arena:match_hub' %}" class="btn-primary"
+        style="width: auto; padding: 0 2rem; min-width: 180px;">Start Playing</a>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- LEGACY SECTION (Match History) -->
+  <section class="legacy-section">
+    <h2 class="section-title">Legacy</h2>
+
+    {% if matches %}
+    <div class="legacy-list" style="display: flex; flex-direction: column; gap: 0.85rem;">
+      {% for match in matches %}
+      <div class="card"
+        style="padding: 1rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: rgba(13, 25, 41, 0.4); border-color: rgba(0, 245, 255, 0.08); transition: transform 0.2s;">
+
+        <!-- Left: Info -->
+        <div style="flex: 1; min-width: 0;">
+          <div
+            style="font-size: 0.65rem; color: rgba(160, 200, 240, 0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.2rem;">
+            {{ match.game.name }} • {{ match.get_legacy_time|date:"M d, H:i" }}
+          </div>
+          <div
+            style="font-size: 0.95rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            vs
+            {% if match.opponent_display.team_name %}
+            {{ match.opponent_display.team_name }}
+            {% else %}
+            {{ match.opponent_display.username }}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Center: Score -->
+        <div style="text-align: center; min-width: 100px; padding: 0 0.5rem;">
+          <div class="score"
+            style="font-size: 1rem; color: var(--neon-cyan); letter-spacing: 0.03em; font-weight: 800; white-space: nowrap;">
+            {{ match.display_score }}
+          </div>
+        </div>
+
+        <!-- Right: Badge -->
+        <div style="min-width: 90px; text-align: right;">
+          <span style="
+                display: inline-block;
+                min-width: 80px;
+                text-align: center;
+                font-size: 0.6rem; 
+                font-weight: 900; 
+                padding: 0.35rem 0.5rem; 
+                border-radius: 6px; 
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                {% if match.outcome == 'WIN' %}
+                  background: rgba(0, 255, 122, 0.1); border: 1px solid rgba(0, 255, 122, 0.3); color: #00ff7a;
+                {% elif match.outcome == 'LOSS' %}
+                  background: rgba(255, 0, 122, 0.1); border: 1px solid rgba(255, 0, 122, 0.3); color: #ff007a;
+                {% elif match.outcome == 'CANCELLED' %}
+                  background: rgba(140, 180, 200, 0.1); border: 1px solid rgba(160, 180, 200, 0.3); color: #8cb4dc;
+                {% else %}
+                  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff;
+                {% endif %}
+              ">
+            {{ match.outcome }}
+          </span>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding: 2rem 1rem;">
+      <p style="font-size: 0.85rem; color: rgba(160, 200, 240, 0.4);">No matches recorded in your archive yet.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- PARTICIPATED GAMES -->
+  {% if player.games.exists %}
+  <section class="games-section">
+    <h2 class="section-title">Active Sports</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+      {% for game in player.games.all %}
+      <div
+        style="background: rgba(13, 25, 41, 0.8); border: 1px solid var(--border-subtle); padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 0.8rem; font-family: var(--font-ui); color: #fff; font-weight: 600; letter-spacing: 0.05em;">
+        {{ game.name }}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

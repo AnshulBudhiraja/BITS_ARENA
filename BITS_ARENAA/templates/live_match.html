@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+{% block title %}Live Match | {{ match.game.name }}{% endblock %}
+{% block nav_match %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .live-page {
+    min-height: 100vh;
+    padding: 2rem 1rem 7rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .live-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .live-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #00f5ff 0%, #7b2fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .live-badge {
+    display: inline-block;
+    padding: 0.4rem 1.2rem;
+    border-radius: 2rem;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: rgba(123, 47, 255, 0.15);
+    color: #a87fff;
+    border: 1px solid rgba(123, 47, 255, 0.5);
+    box-shadow: 0 0 20px rgba(123, 47, 255, 0.3);
+    margin-top: 1rem;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.7;
+      box-shadow: 0 0 10px rgba(123, 47, 255, 0.1);
+    }
+
+    50% {
+      opacity: 1;
+      box-shadow: 0 0 25px rgba(123, 47, 255, 0.6);
+    }
+
+    100% {
+      opacity: 0.7;
+      box-shadow: 0 0 10px rgba(123, 47, 255, 0.1);
+    }
+  }
+
+  .live-card {
+    background: rgba(10, 20, 40, 0.75);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 1.5rem;
+    padding: 3rem 2rem;
+    width: 100%;
+    max-width: 640px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .live-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00f5ff, #7b2fff);
+  }
+
+  .live-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 1fr;
+    /* Fixed width center for perfect alignment */
+    align-items: center;
+    width: 100%;
+    text-align: center;
+  }
+
+  .player-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .live-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(176, 0, 255, 0.15));
+    border: 3px solid rgba(0, 245, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+  }
+
+  .live-avatar svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .live-player-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #fff;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  }
+
+  .live-player-id {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    color: rgba(0, 245, 255, 0.6);
+    text-transform: uppercase;
+  }
+
+  .vs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+  }
+
+  .vs-text {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #ff007f;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+    margin: 1rem 0;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2rem;
+    color: #e0f4ff;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-top: 3rem;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  @media (max-width: 480px) {
+    .live-grid-row {
+      grid-template-columns: 1fr 60px 1fr !important;
+    }
+
+    .vs-text {
+      margin: 0.2rem 0;
+      font-size: 1rem !important;
+    }
+
+    .live-card {
+      padding: 1.5rem 0.5rem !important;
+    }
+
+    .live-player-name {
+      font-size: 0.8rem !important;
+    }
+
+    .live-avatar {
+      width: 45px !important;
+      height: 45px !important;
+    }
+
+    .live-avatar svg {
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    .form-input {
+      font-size: 1rem !important;
+      padding: 0.5rem !important;
+    }
+
+    .create-match-btn {
+      padding: 0.6rem 1.2rem !important;
+      font-size: 0.7rem !important;
+    }
+
+    .live-player-id {
+      font-size: 0.6rem !important;
+    }
+  }
+
+  .form-input {
+    width: 100%;
+    max-width: 80px;
+    /* Limit width of individual score inputs */
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 0.5rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-input:focus {
+    border-color: #00f5ff;
+    box-shadow: 0 0 10px rgba(0, 245, 255, 0.2);
+  }
+
+  .create-match-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.6rem;
+    background: linear-gradient(135deg, #00c8ff 0%, #7b2fff 100%);
+    border: none;
+    border-radius: 2rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+    transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  }
+
+  .create-match-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="live-page">
+  <div class="live-header">
+    <h1 class="live-title">{{ match.game.name }}</h1>
+    <span class="live-badge">MATCH IN PROGRESS</span>
+  </div>
+
+  <div class="live-card">
+    <div class="live-grid-row" style="margin-bottom: 2rem;">
+
+      <!-- Player 1 -->
+      <div class="player-col">
+        <div class="live-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="live-player-name">{{ match.challenged_by.username|default:match.challenged_by }}</div>
+        <div class="live-player-id">{{ match.challenged_by.bits_id|default:"CHALLENGER" }}</div>
+      </div>
+
+      <div class="vs-col">
+        <span class="vs-text">VS</span>
+      </div>
+
+      <!-- Player 2 -->
+      <div class="player-col">
+        <div class="live-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="live-player-name">{{ match.opponent.username|default:match.opponent }}</div>
+        <div class="live-player-id">{{ match.opponent.bits_id|default:"OPPONENT" }}</div>
+      </div>
+
+    </div>
+
+    <!-- Score Entry Section -->
+    <div style="margin-top: 0.25rem; padding-top: 0.25rem;">
+
+      {% for set_data in sets_ui_data %}
+      <div style="margin-bottom: 2rem; background: rgba(0,0,0,0.2); position: relative;">
+
+
+        {% if set_data.is_verified %}
+        <div class="live-grid-row" style="padding: 1rem 0;">
+          <div style="text-align: center;">
+            <div
+              style="color: #00e676; font-family: var(--font-ui); font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">
+              {{ match.challenged_by.username|default:match.challenged_by }}</div>
+            <div
+              style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: #00e676; text-shadow: 0 0 20px rgba(0, 230, 118, 0.5);">
+              {{ set_data.verified_score.challenger }}</div>
+          </div>
+          <div style="padding: 0 0.5rem; text-align: center;">
+            <div
+              style="font-family: var(--font-ui); font-size: 0.70rem; color: #00e676; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; border: 1px solid #00e676; padding: 0.3rem 0.6rem; border-radius: 2rem; background: rgba(0,230,118,0.1); margin-bottom: 0.5rem;">
+              Verified</div>
+            <div style="color: #00e676; font-family: var(--font-display); font-weight: 900; font-size: 1rem;">
+              {% if game_has_sets %}SET {{ set_data.set_number }}{% else %}SCORE{% endif %}
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <div
+              style="color: #00e676; font-family: var(--font-ui); font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase;">
+              {{ match.opponent.username|default:match.opponent }}</div>
+            <div
+              style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: #00e676; text-shadow: 0 0 20px rgba(0, 230, 118, 0.5);">
+              {{ set_data.verified_score.opponent }}</div>
+          </div>
+        </div>
+        {% elif set_data.waiting_on_opponent %}
+        <div
+          style="padding-top: 1.5rem; padding-bottom: 0.5rem; text-align: center; color: rgba(0, 245, 255, 0.8); font-family: var(--font-ui); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;">
+          <svg style="margin-bottom: 0.5rem;" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg><br>
+          Score locked.<br>Awaiting opponent...
+        </div>
+        {% elif set_data.waiting_on_me %}
+        <form method="post" action="{% url 'arena:live_match' match.pk %}" style="margin: 0; padding: 1rem 0;">
+          {% csrf_token %}
+          {{ set_data.form.set_number }}
+          <div class="live-grid-row" style="margin-bottom: 1.5rem;">
+            <div style="text-align: center;">
+              {{ set_data.form.challenger_score }}
+            </div>
+            <div
+              style="padding: 0 0.5rem; font-family: var(--font-display); font-weight: 900; font-size: 1rem; color: #00f5ff;">
+              {% if game_has_sets %}SET {{ set_data.set_number }}{% else %}VS{% endif %}
+            </div>
+            <div style="text-align: center;">
+              {{ set_data.form.opponent_score }}
+            </div>
+          </div>
+          <div style="text-align: center;">
+            <button type="submit" class="create-match-btn"
+              style="background: linear-gradient(135deg, #7b2fff 0%, #00f5ff 100%); padding: 0.8rem 3rem;">Lock
+              Score</button>
+          </div>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {% if match.status == 'completed' %}
+      <div
+        style="margin-top: 1rem; padding: 1.5rem; background: rgba(0, 245, 255, 0.1); border: 1px solid rgba(0, 245, 255, 0.4); border-radius: 1rem; color: #00f5ff; font-family: var(--font-ui); font-size: 0.9rem; letter-spacing: 0.1em; text-transform: uppercase;">
+        MATCH COMPLETED.<br><span
+          style="color: #fff; font-size: 1.2rem; font-weight: bold; margin-top: 0.5rem; display: block; font-family: var(--font-display);">Final
+          Score Verified</span>
+
+        <form method="post" action="{% url 'arena:end_match' match.pk %}" style="margin-top: 1.5rem;">
+          {% csrf_token %}
+          <button type="submit" class="create-match-btn" style="width: 100%; justify-content: center;">
+            🚀 Finalize & Update Ratings
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      {% if change_in_winner_rating is not None %}
+      <div
+        style="margin-top: 2rem; padding: 2rem; background: rgba(123, 47, 255, 0.12); border: 1px solid rgba(123, 47, 255, 0.4); border-radius: 1.5rem; color: #fff; text-align: center; backdrop-filter: blur(10px);">
+        <div
+          style="font-family: var(--font-ui); font-size: 0.8rem; letter-spacing: 0.3em; text-transform: uppercase; color: #b085ff; margin-bottom: 2rem; font-weight: 800;">
+          Rating Adjustments
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Left Column (Challenger) -->
+          <div
+            style="padding: 1.2rem 1rem; background: rgba(0,0,0,0.3); border-radius: 1rem; border: 1px solid rgba(0, 245, 255, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; text-align: center;">
+            <div
+              style="font-size: 0.65rem; text-transform: uppercase; color: rgba(160, 200, 240, 0.5); letter-spacing: 0.1em; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {{ match.challenged_by.username|default:"CHALLENGER" }}
+            </div>
+
+            <div
+              style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: {% if match.winner == match.challenged_by %}#00ffa2{% else %}#ff2b6d{% endif %}; text-shadow: 0 0 15px {% if match.winner == match.challenged_by %}rgba(0, 255, 162, 0.3){% else %}rgba(255, 43, 109, 0.3){% endif %};">
+              {% if match.winner == match.challenged_by %}
+              +{{ change_in_winner_rating|floatformat:1 }}
+              {% else %}
+              {{ change_in_loser_rating|floatformat:1 }}
+              {% endif %}
+            </div>
+            <div
+              style="font-size: 0.8rem; color: rgba(255,255,255,0.7); font-family: var(--font-ui);">
+              New: {% if match.winner == match.challenged_by %}{{ new_winner_rating|floatformat:0 }}{% else %}{{ new_loser_rating|floatformat:0 }}{% endif %}
+            </div>
+          </div>
+
+          <!-- Right Column (Opponent) -->
+          <div
+            style="padding: 1.2rem 1rem; background: rgba(0,0,0,0.3); border-radius: 1rem; border: 1px solid rgba(0, 245, 255, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; text-align: center;">
+            <div
+              style="font-size: 0.65rem; text-transform: uppercase; color: rgba(160, 200, 240, 0.5); letter-spacing: 0.1em; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              {{ match.opponent.username|default:"OPPONENT" }}
+            </div>
+
+            <div
+              style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: {% if match.winner == match.opponent %}#00ffa2{% else %}#ff2b6d{% endif %}; text-shadow: 0 0 15px {% if match.winner == match.opponent %}rgba(0, 255, 162, 0.3){% else %}rgba(255, 43, 109, 0.3){% endif %};">
+              {% if match.winner == match.opponent %}
+              +{{ change_in_winner_rating|floatformat:1 }}
+              {% else %}
+              {{ change_in_loser_rating|floatformat:1 }}
+              {% endif %}
+            </div>
+            <div
+              style="font-size: 0.8rem; color: rgba(255,255,255,0.7); font-family: var(--font-ui);">
+              New: {% if match.winner == match.opponent %}{{ new_winner_rating|floatformat:0 }}{% else %}{{ new_loser_rating|floatformat:0 }}{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <a href="{% url 'arena:match_hub' %}" class="create-match-btn"
+          style="margin-top: 2rem; width: 100%; justify-content: center; background: rgba(255,255,255,0.08); box-shadow: none; border: 1px solid rgba(255,255,255,0.1);">
+          Archive and Return to Hub
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="{% url 'arena:match_hub' %}" class="back-btn">← Minimize to Hub</a>
+</div>
+{% endblock %}

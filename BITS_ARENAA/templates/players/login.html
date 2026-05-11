@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Log In — BITS ARENA{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Reuse same auth styles — keep in sync with signup.html */
+  .auth-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem 2rem;
+    min-height: calc(100svh - var(--header-h) - var(--bnav-h) - var(--bnav-safe));
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: rgba(10, 18, 32, 0.85);
+    border: 1px solid rgba(0, 245, 255, 0.14);
+    border-radius: 18px;
+    padding: 1.75rem 1.5rem 2rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 40px rgba(0, 245, 255, 0.05), 0 0 80px rgba(176, 0, 255, 0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00f5ff, #b000ff);
+  }
+
+  .auth-heading {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(90deg, #00f5ff, #e040fb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.25rem;
+  }
+
+  .auth-subheading {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: rgba(0, 245, 255, 0.5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.75rem;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .field-group label {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(160, 200, 240, 0.7);
+  }
+
+  .auth-form input {
+    width: 100%;
+    height: 48px;
+    background: rgba(6, 12, 20, 0.8);
+    border: 1px solid rgba(0, 245, 255, 0.15);
+    border-radius: 10px;
+    padding: 0 1rem;
+    color: #c8d8f0;
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    /* -webkit-appearance: none; */
+  }
+
+  .auth-form input::placeholder {
+    color: rgba(140, 180, 220, 0.3);
+  }
+
+  .auth-form input:focus {
+    border-color: rgba(0, 245, 255, 0.5);
+    box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.08);
+  }
+
+  .field-error {
+    font-size: 0.72rem;
+    color: #ff4d6d;
+    margin-top: 0.15rem;
+  }
+
+  .form-errors {
+    background: rgba(255, 77, 109, 0.08);
+    border: 1px solid rgba(255, 77, 109, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-errors p {
+    font-size: 0.82rem;
+    color: #ff4d6d;
+    margin: 0;
+  }
+
+  .auth-submit {
+    margin-top: 0.5rem;
+    height: 50px;
+    width: 100%;
+    background: linear-gradient(135deg, #00f5ff, #b000ff);
+    color: #000;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 245, 255, 0.35);
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+
+  .auth-submit:active {
+    transform: scale(0.97);
+  }
+
+  .auth-switch {
+    margin-top: 1.25rem;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    color: rgba(160, 200, 240, 0.5);
+  }
+
+  .auth-switch a {
+    color: #00f5ff;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0 1rem;
+    color: rgba(160, 200, 240, 0.3);
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+  }
+
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+  }
+
+  .auth-divider span {
+    padding: 0 0.75rem;
+  }
+
+  .google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: #fff;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  }
+
+  .google-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(0, 245, 255, 0.3);
+  }
+
+  .google-btn:active {
+    transform: scale(0.98);
+  }
+
+  .google-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Django messages */
+  .auth-messages {
+    margin-bottom: 1rem;
+  }
+
+  .auth-message {
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-message.success {
+    background: rgba(0, 245, 100, 0.08);
+    border: 1px solid rgba(0, 245, 100, 0.25);
+    color: #00ff7a;
+  }
+
+  .auth-message.error {
+    background: rgba(255, 77, 109, 0.08);
+    border: 1px solid rgba(255, 77, 109, 0.3);
+    color: #ff4d6d;
+  }
+
+  .auth-message.info {
+    background: rgba(0, 245, 255, 0.06);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    color: #00f5ff;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page" id="login-page">
+
+  <div class="auth-card" id="login-card">
+    <h1 class="auth-heading">Welcome Back</h1>
+    <p class="auth-subheading">Log in to the arena</p>
+
+    <!-- Django messages (e.g. after logout) -->
+    {% if messages %}
+    <div class="auth-messages" id="auth-messages">
+      {% for message in messages %}
+      <div class="auth-message {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Form-level errors (wrong credentials) -->
+    {% if form.non_field_errors %}
+    <div class="form-errors" role="alert" id="login-form-errors">
+      {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <form class="auth-form" method="post" id="login-form" novalidate>
+      {% csrf_token %}
+
+      <!-- BITS ID -->
+      <div class="field-group">
+        <label for="id_login_bits_id">BITS ID</label>
+        {{ form.bits_id }}
+        {% for error in form.bits_id.errors %}
+        <span class="field-error" role="alert">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <!-- Password -->
+      <div class="field-group">
+        <label for="id_login_password">Password</label>
+        {{ form.password }}
+        {% for error in form.password.errors %}
+        <span class="field-error" role="alert">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <!-- Hidden next param -->
+      {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <button type="submit" class="auth-submit" id="login-submit-btn">
+        Log In
+      </button>
+    </form>
+
+    <div class="auth-divider">
+      <span>OR</span>
+    </div>
+
+    <a href="{% provider_login_url 'google' %}" class="google-btn" id="google-login-btn">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo"
+        class="google-icon">
+      Continue with Google
+    </a>
+
+    <p class="auth-switch">
+      New to BITS ARENA?
+      <a href="{% url 'players:signup' %}" id="goto-signup">Create an account</a>
+    </p>
+  </div>
+
+</div>
+{% endblock %}
