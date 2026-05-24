@@ -27,7 +27,7 @@ jobs:
           echo "POSTGRES_DB=test_db" >> BITS_ARENAA/.env
           echo "POSTGRES_USER=test_user" >> BITS_ARENAA/.env
           echo "POSTGRES_PASSWORD=test_password" >> BITS_ARENAA/.env
-          echo "POSTGRES_HOST=test_host" >> BITS_ARENAA/.env
+          echo "POSTGRES_HOST=postgres" >> BITS_ARENAA/.env
           echo "POSTGRES_PORT=5432" >> BITS_ARENAA/.env
       
       - name: Build Docker Containers
