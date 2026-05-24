@@ -5,6 +5,16 @@ on: [push] # This tells GitHub to trigger the pipeline on every single push
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
