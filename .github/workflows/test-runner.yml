@@ -11,7 +11,7 @@ jobs:
       
       - name: Create dummy .env file
         run: |
-          touch .env
+          touch BITS_ARENAA/.env
           echo "SECRET_KEY=dummy-key-for-testing" >> .env
           echo "DEBUG=True" >> .env
           echo "POSTGRES_DB=test_db" >> .env
