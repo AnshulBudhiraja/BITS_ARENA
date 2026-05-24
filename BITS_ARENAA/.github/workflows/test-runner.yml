@@ -1,0 +1,13 @@
+name: BITS Arena Initial Test
+
+on: [push] # This tells GitHub to trigger the pipeline on every single push
+
+jobs:
+  first-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        run: echo "GitHub Actions is successfully connected to the repo!"
+      
+      - name: Check system
+        run: python --version
