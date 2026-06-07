@@ -4,6 +4,7 @@ from .forms import PlayerSignupForm, PlayerLoginForm
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
+from allauth.account.utils import perform_login
 from arena.models import Match
 from .models import Player, Team, PlayerRating
 
@@ -17,7 +18,12 @@ def signup_view(request):
 
     if request.method == 'POST' and form.is_valid():
         player = form.save()
-        login(request, player)
+        perform_login(
+            request, 
+            player, 
+            email_verification='none', # Bypasses email checks if using internal BITS ID
+            redirect_url='arena:home'
+        )
         messages.success(request, f'Welcome to BITS ARENA, {player.username}!')
         return redirect('arena:home')
 
@@ -33,7 +39,12 @@ def login_view(request):
 
     if request.method == 'POST' and form.is_valid():
         player = form.get_player()
-        login(request, player)
+        perform_login(
+            request, 
+            player, 
+            email_verification='none', # Bypasses email checks if using internal BITS ID
+            redirect_url='arena:home'
+        )
         next_url = request.GET.get('next', 'arena:home')
         return redirect(next_url)
 
@@ -49,7 +60,7 @@ def logout_view(request):
 
 from django.contrib.auth.decorators import login_required
 
-@login_required
+@login_requiredallauth
 def profile(request):
     """Player profile view showing stats, ratings, and match history (LEGACY)."""
     # Fetch all ratings for the current player, including game details

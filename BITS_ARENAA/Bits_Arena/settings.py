@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # Project apps
     "players",
     "arena",
+    "api",
     "rest_framework",
 ]
 
