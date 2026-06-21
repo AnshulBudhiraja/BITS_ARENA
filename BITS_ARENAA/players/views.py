@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
 from django.contrib.auth import login, logout
 from .forms import PlayerSignupForm, PlayerLoginForm
 from django.contrib import messages
@@ -18,14 +18,13 @@ def signup_view(request):
 
     if request.method == 'POST' and form.is_valid():
         player = form.save()
-        perform_login(
+        messages.success(request, f'Welcome to BITS ARENA, {player.username}!')
+        return perform_login(
             request, 
             player, 
             email_verification='none', # Bypasses email checks if using internal BITS ID
-            redirect_url='arena:home'
+            redirect_url=resolve_url(request.GET.get('next', 'arena:home'))
         )
-        messages.success(request, f'Welcome to BITS ARENA, {player.username}!')
-        return redirect('arena:home')
 
     return render(request, 'players/signup.html', {'form': form})
 
@@ -39,14 +38,12 @@ def login_view(request):
 
     if request.method == 'POST' and form.is_valid():
         player = form.get_player()
-        perform_login(
+        return perform_login(
             request, 
             player, 
             email_verification='none', # Bypasses email checks if using internal BITS ID
-            redirect_url='arena:home'
+            redirect_url=resolve_url(request.GET.get('next', 'arena:home'))
         )
-        next_url = request.GET.get('next', 'arena:home')
-        return redirect(next_url)
 
     return render(request, 'players/login.html', {'form': form})
 
@@ -60,7 +57,7 @@ def logout_view(request):
 
 from django.contrib.auth.decorators import login_required
 
-@login_requiredallauth
+@login_required
 def profile(request):
     """Player profile view showing stats, ratings, and match history (LEGACY)."""
     # Fetch all ratings for the current player, including game details

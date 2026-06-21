@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 
 from players.models import PlayerRating
 from arena.models import Game
-from .serializers import PlayerRatingSerializer, GameSerializer
+from .serializers import PlayerRatingSerializer, GameSerializer, MatchSerializer, MatchCreateSerializer
 
 
 class LeaderboardView(APIView):
@@ -54,3 +54,17 @@ class LeaderboardView(APIView):
             })
             
         return Response(response_data)
+
+
+class MatchCreateView(APIView):
+    """
+    API endpoint to create a new match challenge.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = MatchCreateSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            match = serializer.save()
+            return Response(MatchSerializer(match, context={'request': request}).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
