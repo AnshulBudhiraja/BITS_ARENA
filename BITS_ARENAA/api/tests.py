@@ -370,3 +370,65 @@ class MatchJoinSerializerTests(DjangoTestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn("You are not invited to this match.", serializer.errors['non_field_errors'])
 
+
+class MatchJoinAPITests(APITestCase):
+    def setUp(self):
+        # Create test users/players
+        self.player1 = Player.objects.create_user(
+            username="player1",
+            email="p1@pilani.bits-pilani.ac.in",
+            password="testpassword123",
+            bits_id="2022A7PS0001G"
+        )
+        self.player2 = Player.objects.create_user(
+            username="player2",
+            email="p2@pilani.bits-pilani.ac.in",
+            password="testpassword123",
+            bits_id="2022A7PS0002G"
+        )
+        # Create test game
+        self.game = Game.objects.create(
+            name="Chess",
+            is_active=True,
+            scoring_unit="points"
+        )
+        # Create a pending match
+        player_ct = ContentType.objects.get_for_model(Player)
+        self.match = Match.objects.create(
+            game=self.game,
+            status=Match.Status.PENDING,
+            invite_type=Match.InviteType.OPEN_CHALLENGE,
+            challenged_by_content_type=player_ct,
+            challenged_by_object_id=self.player1.pk
+        )
+
+    def test_anonymous_user_cannot_join_match(self):
+        url = reverse('api:match-join', kwargs={'match_id': self.match.id})
+        response = self.client.post(url, data={})
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+    def test_join_match_success(self):
+        self.client.force_authenticate(user=self.player2)
+        url = reverse('api:match-join', kwargs={'match_id': self.match.id})
+        response = self.client.post(url, data={})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify db status and opponent
+        self.match.refresh_from_db()
+        self.assertEqual(self.match.opponent, self.player2)
+        self.assertEqual(self.match.status, Match.Status.CONFIRMED)
+
+    def test_join_own_match_failure(self):
+        self.client.force_authenticate(user=self.player1)
+        url = reverse('api:match-join', kwargs={'match_id': self.match.id})
+        response = self.client.post(url, data={})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('non_field_errors', response.data)
+
+    def test_join_non_existent_match(self):
+        self.client.force_authenticate(user=self.player2)
+        url = reverse('api:match-join', kwargs={'match_id': 99999})
+        response = self.client.post(url, data={})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+

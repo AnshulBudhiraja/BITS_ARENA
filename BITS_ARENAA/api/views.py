@@ -4,8 +4,14 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 
 from players.models import PlayerRating
-from arena.models import Game
-from .serializers import PlayerRatingSerializer, GameSerializer, MatchSerializer, MatchCreateSerializer
+from arena.models import Game, Match
+from .serializers import (
+    PlayerRatingSerializer,
+    GameSerializer,
+    MatchSerializer,
+    MatchCreateSerializer,
+    MatchJoinSerializer,
+)
 
 
 class LeaderboardView(APIView):
@@ -67,4 +73,19 @@ class MatchCreateView(APIView):
         if serializer.is_valid():
             match = serializer.save()
             return Response(MatchSerializer(match, context={'request': request}).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MatchJoinView(APIView):
+    """
+    API endpoint to join a match challenge.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, match_id, *args, **kwargs):
+        match = get_object_or_404(Match, pk=match_id)
+        serializer = MatchJoinSerializer(match, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            match = serializer.save()
+            return Response(MatchSerializer(match, context={'request': request}).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

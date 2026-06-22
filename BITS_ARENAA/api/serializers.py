@@ -135,7 +135,11 @@ class MatchCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
+        if not request or not request.user or request.user.is_anonymous:
+            raise serializers.ValidationError("Authentication credentials are required.")
         user = request.user
+        if not isinstance(user, Player):
+            raise serializers.ValidationError("Invalid user type.")
 
         resolved_opponent = validated_data.pop('resolved_opponent', None)
         validated_data.pop('opponent_bits_id', None)
@@ -176,6 +180,8 @@ class MatchJoinSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Authentication credentials were not provided.")
 
         player = request.user
+        if not isinstance(player, Player):
+            raise serializers.ValidationError("Invalid user type.")
         player_ct = ContentType.objects.get_for_model(Player)
 
         match = self.instance
@@ -217,7 +223,11 @@ class MatchJoinSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         request = self.context.get('request')
+        if not request or not request.user or request.user.is_anonymous:
+            raise serializers.ValidationError("Authentication credentials are required.")
         player = request.user
+        if not isinstance(player, Player):
+            raise serializers.ValidationError("Invalid user type.")
 
         # Set opponent to the joining player and update status
         instance.opponent = player
