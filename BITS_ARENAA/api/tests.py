@@ -12,20 +12,17 @@ class LeaderboardAPITests(APITestCase):
         self.player1 = Player.objects.create_user(
             username="player1",
             email="p1@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0001G"
+            password="testpassword123"
         )
         self.player2 = Player.objects.create_user(
             username="player2",
             email="p2@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0002G"
+            password="testpassword123"
         )
         self.player3 = Player.objects.create_user(
             username="player3",
             email="p3@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0003G"
+            password="testpassword123"
         )
 
         # Create test games
@@ -125,14 +122,12 @@ class MatchCreateAPITests(APITestCase):
         self.player1 = Player.objects.create_user(
             username="player1",
             email="p1@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0001G"
+            password="testpassword123"
         )
         self.player2 = Player.objects.create_user(
             username="player2",
             email="p2@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0002G"
+            password="testpassword123"
         )
 
         # Create active games (one set-based, one non-set-based)
@@ -196,7 +191,7 @@ class MatchCreateAPITests(APITestCase):
         payload = {
             "game": self.game_non_set.id,
             "invite_type": "invite_only",
-            "opponent_bits_id": self.player2.bits_id,
+            "opponent_username": self.player2.username,
             "location": "VK QT lawns"
         }
         response = self.client.post(self.url, payload, format="json")
@@ -218,12 +213,12 @@ class MatchCreateAPITests(APITestCase):
         payload = {
             "game": self.game_non_set.id,
             "invite_type": "invite_only",
-            "opponent_bits_id": self.player1.bits_id,
+            "opponent_username": self.player1.username,
         }
         response = self.client.post(self.url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('opponent_bits_id', response.data)
-        self.assertEqual(response.data['opponent_bits_id'][0], "You cannot invite yourself to a match.")
+        self.assertIn('opponent_username', response.data)
+        self.assertEqual(response.data['opponent_username'][0], "You cannot invite yourself to a match.")
 
     def test_create_invite_only_missing_opponent_id(self):
         """Verify invite-only match validation requires opponent BITS ID."""
@@ -234,7 +229,7 @@ class MatchCreateAPITests(APITestCase):
         }
         response = self.client.post(self.url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('opponent_bits_id', response.data)
+        self.assertIn('opponent_username', response.data)
 
     def test_create_invite_only_invalid_opponent_id(self):
         """Verify invite-only match fails with non-existent opponent BITS ID."""
@@ -242,11 +237,11 @@ class MatchCreateAPITests(APITestCase):
         payload = {
             "game": self.game_non_set.id,
             "invite_type": "invite_only",
-            "opponent_bits_id": "999999999"
+            "opponent_username": "invalid_user"
         }
         response = self.client.post(self.url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('opponent_bits_id', response.data)
+        self.assertIn('opponent_username', response.data)
 
     def test_set_based_duration_unit_validation(self):
         """Verify that duration unit numbers (sets) must be an odd number."""
@@ -290,20 +285,17 @@ class MatchJoinSerializerTests(DjangoTestCase):
         self.player1 = Player.objects.create_user(
             username="player1",
             email="p1@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0001G"
+            password="testpassword123"
         )
         self.player2 = Player.objects.create_user(
             username="player2",
             email="p2@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0002G"
+            password="testpassword123"
         )
         self.player3 = Player.objects.create_user(
             username="player3",
             email="p3@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0003G"
+            password="testpassword123"
         )
         self.game = Game.objects.create(
             name="Chess",
@@ -377,14 +369,12 @@ class MatchJoinAPITests(APITestCase):
         self.player1 = Player.objects.create_user(
             username="player1",
             email="p1@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0001G"
+            password="testpassword123"
         )
         self.player2 = Player.objects.create_user(
             username="player2",
             email="p2@pilani.bits-pilani.ac.in",
-            password="testpassword123",
-            bits_id="2022A7PS0002G"
+            password="testpassword123"
         )
         # Create test game
         self.game = Game.objects.create(

@@ -12,6 +12,7 @@ services:
       - "8000"
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:15
@@ -32,6 +33,11 @@ services:
       - .:/app
     depends_on:
       - web
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:

@@ -8,20 +8,14 @@ class Player(AbstractUser):
     BITS ID is the primary identifier used for login and signup.
     """
 
-    # ── BITS ID as the login field ──────────────────────────────────────────
-    bits_id = models.CharField(
-        max_length=20,
+    username = models.CharField(
+        max_length=150,
         unique=True,
-        verbose_name='BITS ID',
-        help_text='Your official BITS Pilani ID (e.g. 2022A7PS0001G)',
+        verbose_name='Username'
     )
 
-    # AbstractUser already provides: username, first_name, last_name,
+    # AbstractUser already provides: first_name, last_name,
     # email, password, is_active, date_joined, etc.
-    # We keep username as a required field but make bits_id the login key.
-
-    USERNAME_FIELD  = 'bits_id'   # used by authenticate() / login()
-    REQUIRED_FIELDS = ['username', 'email']   # asked by createsuperuser
 
     games = models.ManyToManyField(
         'arena.Game',
@@ -35,7 +29,7 @@ class Player(AbstractUser):
         verbose_name_plural = 'Players'
 
     def __str__(self):
-        return f"{self.bits_id} ({self.username})"
+        return self.username
 
     @property
     def get_avatar_url(self):
@@ -75,7 +69,7 @@ class PlayerRating(models.Model):
         unique_together     = ('player', 'game')
 
     def __str__(self):
-        return f"{self.player.bits_id} — {self.game.name}: {self.rating}"
+        return f"{self.player.username} — {self.game.name}: {self.rating}"
 
 
 class Team(models.Model):

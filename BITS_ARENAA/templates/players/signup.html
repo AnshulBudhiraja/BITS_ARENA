@@ -252,17 +252,7 @@
     <form class="auth-form" method="post" id="signup-form" novalidate>
       {% csrf_token %}
 
-      <!-- BITS ID -->
-      <div class="field-group">
-        <label for="id_bits_id">BITS ID</label>
-        {{ form.bits_id }}
-        {% if form.bits_id.help_text %}
-        <span class="field-help">{{ form.bits_id.help_text }}</span>
-        {% endif %}
-        {% for error in form.bits_id.errors %}
-        <span class="field-error" role="alert">{{ error }}</span>
-        {% endfor %}
-      </div>
+
 
       <!-- Display Name -->
       <div class="field-group">

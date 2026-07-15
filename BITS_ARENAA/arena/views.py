@@ -35,13 +35,13 @@ def create_match_view(request):
         match.status = Match.Status.PENDING
 
         # ── Resolve opponent for invite-only matches ───────────────────────
-        opponent_bits_id = form.cleaned_data.get('opponent_bits_id', '').strip()
-        if match.invite_type == Match.InviteType.INVITE_ONLY and opponent_bits_id:
+        opponent_username = form.cleaned_data.get('opponent_username', '').strip()
+        if match.invite_type == Match.InviteType.INVITE_ONLY and opponent_username:
             try:
-                opponent = Player.objects.get(bits_id=opponent_bits_id)
+                opponent = Player.objects.get(username=opponent_username)
                 match.invited_opponent = opponent
             except Player.DoesNotExist:
-                form.add_error('opponent_bits_id', 'No player found with that BITS ID.')
+                form.add_error('opponent_username', 'No player found with that Username.')
                 
                 # Fetch games data for re-render
                 from .models import Game

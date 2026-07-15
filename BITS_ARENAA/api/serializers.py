@@ -9,7 +9,7 @@ class PlayerUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ['id', 'username', 'bits_id', 'avatar_url']
+        fields = ['id', 'username', 'avatar_url']
 
     def get_avatar_url(self, obj):
         return obj.get_avatar_url
@@ -87,7 +87,7 @@ class MatchCreateSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'game', 'played_at', 'location', 
             'duration_unit_number', 'scoring_unit_number', 
-            'invite_type', 'opponent_bits_id'
+            'invite_type', 'opponent_username'
         ]
         read_only_fields = ['id']
 
@@ -95,7 +95,7 @@ class MatchCreateSerializer(serializers.ModelSerializer):
         game = attrs.get('game')
         duration_num = attrs.get('duration_unit_number')
         invite_type = attrs.get('invite_type')
-        opponent_bits_id = attrs.get('opponent_bits_id')
+        opponent_username = attrs.get('opponent_username')
 
         # 1. Check if the game is active
         if game and not game.is_active:
@@ -114,21 +114,21 @@ class MatchCreateSerializer(serializers.ModelSerializer):
 
         # 3. Validation for invite only match
         if invite_type == Match.InviteType.INVITE_ONLY:
-            if not opponent_bits_id or not opponent_bits_id.strip():
+            if not opponent_username or not opponent_username.strip():
                 raise serializers.ValidationError({
-                    'opponent_bits_id': "Opponent's BITS ID is required for invite-only matches."
+                    'opponent_username': "Opponent's Username is required for invite-only matches."
                 })
             try:
-                opponent = Player.objects.get(bits_id=opponent_bits_id.strip())
+                opponent = Player.objects.get(username=opponent_username.strip())
                 request = self.context.get('request')
                 if request and request.user == opponent:
                     raise serializers.ValidationError({
-                        'opponent_bits_id': "You cannot invite yourself to a match."
+                        'opponent_username': "You cannot invite yourself to a match."
                     })
                 attrs['resolved_opponent'] = opponent
             except Player.DoesNotExist:
                 raise serializers.ValidationError({
-                    'opponent_bits_id': "No player found with that BITS ID."
+                    'opponent_username': "No player found with that Username."
                 })
 
         return attrs
@@ -142,7 +142,7 @@ class MatchCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid user type.")
 
         resolved_opponent = validated_data.pop('resolved_opponent', None)
-        validated_data.pop('opponent_bits_id', None)
+        validated_data.pop('opponent_username', None)
 
         game = validated_data.get('game')
         

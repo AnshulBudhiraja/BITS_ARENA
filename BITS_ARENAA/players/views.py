@@ -10,7 +10,7 @@ from .models import Player, Team, PlayerRating
 
 
 def signup_view(request):
-    """Player registration using BITS ID."""
+    """Player registration."""
     if request.user.is_authenticated:
         return redirect('arena:home')
 
@@ -22,7 +22,7 @@ def signup_view(request):
         return perform_login(
             request, 
             player, 
-            email_verification='none', # Bypasses email checks if using internal BITS ID
+            email_verification='none', # Bypasses email checks
             redirect_url=resolve_url(request.GET.get('next', 'arena:home'))
         )
 
@@ -30,7 +30,7 @@ def signup_view(request):
 
 
 def login_view(request):
-    """Player login using BITS ID + password."""
+    """Player login."""
     if request.user.is_authenticated:
         return redirect('arena:home')
 
@@ -41,7 +41,7 @@ def login_view(request):
         return perform_login(
             request, 
             player, 
-            email_verification='none', # Bypasses email checks if using internal BITS ID
+            email_verification='none', # Bypasses email checks
             redirect_url=resolve_url(request.GET.get('next', 'arena:home'))
         )
 
@@ -106,3 +106,110 @@ def profile(request):
     }
     return render(request, 'profile.html', context)
 
+
+@login_required
+def optional_password_view(request):
+    """View to optionally set a password and modify auto-generated username after social signup."""
+    from django.contrib.auth import update_session_auth_hash
+    from .forms import SocialSignupCompletionForm
+
+    if request.method == 'POST':
+        if 'skip' in request.POST:
+            return redirect('arena:home')
+        
+        form = SocialSignupCompletionForm(request.POST, user=request.user)
+        if form.is_valid():
+            # Update username
+            request.user.username = form.cleaned_data['username']
+            request.user.save()
+
+            # Update password if provided
+            pwd = form.cleaned_data.get('password')
+            if pwd:
+                request.user.set_password(pwd)
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Your profile has been updated and password set!')
+            else:
+                messages.success(request, 'Your username has been updated!')
+
+            return redirect('arena:home')
+    else:
+        form = SocialSignupCompletionForm(user=request.user, initial={'username': request.user.username})
+
+    return render(request, 'players/optional_password.html', {'form': form})
+
+
+@login_required
+def password_settings_view(request):
+    """View to change password using either old password or OTP."""
+    from django.contrib.auth import update_session_auth_hash
+    from .forms import PasswordChangeOldPasswordForm, PasswordChangeOTPForm
+
+    # Handle form submissions
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'old_password':
+            old_pwd_form = PasswordChangeOldPasswordForm(request.POST, user=request.user)
+            otp_form = PasswordChangeOTPForm(user=request.user)
+            if old_pwd_form.is_valid():
+                request.user.set_password(old_pwd_form.cleaned_data['new_password'])
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Your password has been changed successfully.')
+                return redirect('players:profile')
+        elif action == 'otp':
+            old_pwd_form = PasswordChangeOldPasswordForm(user=request.user)
+            otp_form = PasswordChangeOTPForm(request.POST, user=request.user)
+            if otp_form.is_valid():
+                request.user.set_password(otp_form.cleaned_data['new_password'])
+                request.user.save()
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Your password has been changed successfully using OTP.')
+                
+                # Clear the OTP from cache to prevent reuse
+                from django.core.cache import cache
+                cache.delete(f'otp_pwd_{request.user.id}')
+                
+                return redirect('players:profile')
+    else:
+        old_pwd_form = PasswordChangeOldPasswordForm(user=request.user)
+        otp_form = PasswordChangeOTPForm(user=request.user)
+
+    context = {
+        'old_pwd_form': old_pwd_form,
+        'otp_form': otp_form,
+        'has_usable_password': request.user.has_usable_password(),
+    }
+    return render(request, 'players/password_change.html', context)
+
+
+@login_required
+def send_otp_view(request):
+    """AJAX endpoint to generate and send OTP for password change."""
+    import random
+    from django.core.cache import cache
+    from django.core.mail import send_mail
+    from django.http import JsonResponse
+    
+    if request.method == 'POST':
+        otp = str(random.randint(100000, 999999))
+        
+        # Save OTP to cache (expires in 10 minutes = 600 seconds)
+        cache.set(f'otp_pwd_{request.user.id}', otp, 600)
+        
+        # Send email
+        subject = 'BITS ARENA - Password Change OTP'
+        message = f'Your one-time password to change your BITS ARENA password is: {otp}\n\nThis code is valid for 10 minutes.'
+        send_mail(
+            subject,
+            message,
+            None, # Uses DEFAULT_FROM_EMAIL
+            [request.user.email],
+            fail_silently=False,
+        )
+        
+        return JsonResponse({'status': 'success', 'message': 'OTP sent to your email.'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)

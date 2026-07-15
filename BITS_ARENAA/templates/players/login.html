@@ -276,11 +276,11 @@
     <form class="auth-form" method="post" id="login-form" novalidate>
       {% csrf_token %}
 
-      <!-- BITS ID -->
+      <!-- Login ID -->
       <div class="field-group">
-        <label for="id_login_bits_id">BITS ID</label>
-        {{ form.bits_id }}
-        {% for error in form.bits_id.errors %}
+        <label for="id_login_id">Username or Email</label>
+        {{ form.login_id }}
+        {% for error in form.login_id.errors %}
         <span class="field-error" role="alert">{{ error }}</span>
         {% endfor %}
       </div>

@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     # Project apps
-    "players",
+    "players.apps.PlayersConfig",
     "arena",
     "api",
     "rest_framework",
@@ -188,8 +188,28 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-SOCIALACCOUNT_ADAPTER = 'players.adapters.CustomSocialAccountAdapter'
+ACCOUNT_ADAPTER = 'players.adapters.CustomAccountAdapter'
 
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Email backend (outputs emails to console for development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@bitsarena.com'
+
+CACHES = {
+    "default": {
+        # Using Django's native Redis backend
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        
+        # URL where your Redis server is running (Localhost for development)
+        "LOCATION": "redis://127.0.0.1:6379",
+        
+        # Optional: Useful configuration options
+        "OPTIONS": {
+            "db": "0",  # Uses Redis database index 0
+            "CLIENT_CLASS": "redis.Redis",
+        }
+    }
+}

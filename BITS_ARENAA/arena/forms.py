@@ -5,16 +5,16 @@ from .models import Match
 class MatchCreateForm(forms.ModelForm):
     """
     ModelForm for creating a new match.
-    Includes an optional opponent_bits_id field shown only when
+    Includes an optional opponent_username field shown only when
     invite_type == 'invite_only'.
     """
-    opponent_bits_id = forms.CharField(
+    opponent_username = forms.CharField(
         required=False,
-        max_length=20,
-        label="Opponent's BITS ID",
+        max_length=150,
+        label="Opponent's Username",
         widget=forms.TextInput(attrs={
-            'id': 'opponent-bits-id',
-            'placeholder': 'Search BITS ID (e.g. 2022A7PS0001G)',
+            'id': 'opponent-username',
+            'placeholder': 'Search Username',
             'autocomplete': 'off',
             'class': 'form-input bits-search-input',
         }),

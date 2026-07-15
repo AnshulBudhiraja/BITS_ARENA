@@ -275,6 +275,7 @@
         {% endif %}
       </div>
 
+
       <!-- ── Duration & Scoring (Dynamic Labels) ────────────────────────── -->
       <div class="form-group" id="duration-wrap" style="display: none;">
         <label class="form-label" for="{{ form.duration_unit_number.id_for_label }}" id="duration-label">Duration
@@ -298,13 +299,13 @@
         {% endif %}
       </div>
 
-      {% if form.invite_type.value == 'invite_only' or form.opponent_bits_id.value %}
+      {% if form.invite_type.value == 'invite_only' or form.opponent_username.value %}
       <div id="opponent-search-wrap" class="visible">
         {% else %}
         <div id="opponent-search-wrap">
           {% endif %}
           <div class="form-group" style="position:relative; margin-bottom:0;">
-            <label class="form-label" for="opponent-bits-id">Opponent's BITS ID</label>
+            <label class="form-label" for="opponent-username">Opponent's Username</label>
             <span class="search-icon" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -312,10 +313,10 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </span>
-            {{ form.opponent_bits_id }}
-            {% if form.opponent_bits_id.errors %}
+            {{ form.opponent_username }}
+            {% if form.opponent_username.errors %}
             <ul class="field-errors" style="margin-top:0.4rem;">
-              {% for e in form.opponent_bits_id.errors %}<li>{{ e }}</li>{% endfor %}
+              {% for e in form.opponent_username.errors %}<li>{{ e }}</li>{% endfor %}
             </ul>
             {% endif %}
           </div>

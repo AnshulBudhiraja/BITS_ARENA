@@ -15,8 +15,8 @@
       <img src="{{ request.user.get_avatar_url }}" alt="{{ request.user.username }}" class="welcome-avatar">
       <div class="avatar-glow"></div>
     </div>
-    <h2 class="welcome-text">Welcome, {{ request.user.username }}</h2>
-    <span class="player-bits-tag">{{ request.user.bits_id }}</span>
+    <div class="player-name">{{ request.user.username }}</div>
+    <span class="player-bits-tag">{{ request.user.email|default:"Email not set" }}</span>
   </div>
 
   <div class="player-stats-grid">
@@ -69,9 +69,8 @@
             <div class="player-col">
               <img src="{{ rating_obj.player.get_avatar_url }}" alt="{{ rating_obj.player.username }}"
                 class="leaderboard-avatar">
-              <div class="player-info">
+              <div class="player-details">
                 <span class="player-name">{{ rating_obj.player.username }}</span>
-                <span class="player-bits-id">{{ rating_obj.player.bits_id }}</span>
               </div>
             </div>
             <div class="rating-col">

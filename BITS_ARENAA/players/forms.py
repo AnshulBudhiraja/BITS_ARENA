@@ -8,7 +8,7 @@ from .models import Player
 class PlayerSignupForm(forms.ModelForm):
     """
     ModelForm for Player registration.
-    Collects bits_id, username (display name), email, and password.
+    Collects username (display name), email, and password.
     """
     password = forms.CharField(
         label='Password',
@@ -31,18 +31,12 @@ class PlayerSignupForm(forms.ModelForm):
 
     class Meta:
         model  = Player
-        fields = ['bits_id', 'username', 'email']
+        fields = ['username', 'email']
         labels = {
-            'bits_id':  'BITS ID',
             'username': 'Display Name',
             'email':    'Email Address',
         }
         widgets = {
-            'bits_id': forms.TextInput(attrs={
-                'id': 'id_bits_id',
-                'placeholder': '2022A7PS0001P',
-                'autocomplete': 'username',
-            }),
             'username': forms.TextInput(attrs={
                 'id': 'id_username',
                 'placeholder': 'Your display name',
@@ -56,12 +50,6 @@ class PlayerSignupForm(forms.ModelForm):
         }
 
     # ── Validation ───────────────────────────────────────────────────────────
-
-    def clean_bits_id(self):
-        bits_id = self.cleaned_data.get('bits_id', '').strip().upper()
-        if Player.objects.filter(bits_id=bits_id).exists():
-            raise forms.ValidationError('This BITS ID is already registered.')
-        return bits_id
 
     def clean(self):
         cleaned = super().clean()
@@ -86,14 +74,14 @@ class PlayerSignupForm(forms.ModelForm):
 
 class PlayerLoginForm(forms.Form):
     """
-    Login using BITS ID + password.
+    Login using Email, or Username + password.
     """
-    bits_id = forms.CharField(
-        label='BITS ID',
-        max_length=20,
+    login_id = forms.CharField(
+        label='Username or Email',
+        max_length=254,
         widget=forms.TextInput(attrs={
-            'id': 'id_login_bits_id',
-            'placeholder': '2022A7PS0001P',
+            'id': 'id_login_id',
+            'placeholder': 'Your Username or Email',
             'autocomplete': 'username',
         }),
     )
@@ -112,14 +100,29 @@ class PlayerLoginForm(forms.Form):
 
     def clean(self):
         cleaned  = super().clean()
-        bits_id  = cleaned.get('bits_id', '').strip().upper()
+        login_id = cleaned.get('login_id', '').strip()
         password = cleaned.get('password')
 
-        if bits_id and password:
-            player = authenticate(bits_id=bits_id, password=password)
+        if login_id and password:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            player = None
+            
+            # 1. Try by email
+            if '@' in login_id:
+                try:
+                    user_obj = User.objects.get(email=login_id)
+                    player = authenticate(username=user_obj.username, password=password)
+                except User.DoesNotExist:
+                    pass
+            
+            # 2. Try by username (display name)
+            if not player:
+                player = authenticate(username=login_id, password=password)
+                
             if player is None:
                 raise forms.ValidationError(
-                    'Invalid BITS ID or password. Please try again.'
+                    'Invalid credentials. Please try again.'
                 )
             if not player.is_active:
                 raise forms.ValidationError('This account is inactive.')
@@ -128,3 +131,128 @@ class PlayerLoginForm(forms.Form):
 
     def get_player(self):
         return self._player
+
+
+class SocialSignupCompletionForm(forms.Form):
+    """
+    Form to allow Google users to change their auto-generated username
+    and optionally set a password.
+    """
+    username = forms.CharField(
+        label='Username',
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'id': 'id_username',
+            'placeholder': 'Your Username',
+            'autocomplete': 'username',
+        }),
+    )
+    password = forms.CharField(
+        label='Optional Password',
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'id': 'id_password',
+            'placeholder': 'Leave blank to skip',
+            'autocomplete': 'new-password',
+        }),
+    )
+    password_confirm = forms.CharField(
+        label='Confirm Optional Password',
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'id': 'id_password_confirm',
+            'placeholder': 'Confirm optional password',
+            'autocomplete': 'new-password',
+        }),
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if Player.objects.filter(username=username).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError('This username is already taken.')
+        return username
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pwd = cleaned_data.get('password')
+        pwd_conf = cleaned_data.get('password_confirm')
+        
+        if pwd or pwd_conf:
+            if pwd != pwd_conf:
+                raise forms.ValidationError('Passwords do not match.')
+        return cleaned_data
+
+
+class PasswordChangeOldPasswordForm(forms.Form):
+    old_password = forms.CharField(
+        label='Current Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter your current password'})
+    )
+    new_password = forms.CharField(
+        label='New Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password'})
+    )
+    confirm_new_password = forms.CharField(
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data.get('old_password')
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError('Incorrect current password.')
+        return old_password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_pwd = cleaned_data.get('new_password')
+        conf_pwd = cleaned_data.get('confirm_new_password')
+        if new_pwd and conf_pwd and new_pwd != conf_pwd:
+            raise forms.ValidationError('New passwords do not match.')
+        return cleaned_data
+
+
+class PasswordChangeOTPForm(forms.Form):
+    otp = forms.CharField(
+        label='6-Digit OTP',
+        max_length=6,
+        widget=forms.TextInput(attrs={'placeholder': 'Enter the OTP sent to your email'})
+    )
+    new_password = forms.CharField(
+        label='New Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Enter new password'})
+    )
+    confirm_new_password = forms.CharField(
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirm new password'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def clean_otp(self):
+        from django.core.cache import cache
+        otp = self.cleaned_data.get('otp')
+        cached_otp = cache.get(f'otp_pwd_{self.user.id}')
+        
+        if not cached_otp or str(cached_otp) != str(otp):
+            raise forms.ValidationError('Invalid or expired OTP.')
+        return otp
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_pwd = cleaned_data.get('new_password')
+        conf_pwd = cleaned_data.get('confirm_new_password')
+        if new_pwd and conf_pwd and new_pwd != conf_pwd:
+            raise forms.ValidationError('New passwords do not match.')
+        return cleaned_data

@@ -293,7 +293,7 @@
           </svg>
         </div>
         <div class="live-player-name">{{ match.challenged_by.username|default:match.challenged_by }}</div>
-        <div class="live-player-id">{{ match.challenged_by.bits_id|default:"CHALLENGER" }}</div>
+        <div class="live-player-id">{{ match.challenged_by.username|default:"CHALLENGER" }}</div>
       </div>
 
       <div class="vs-col">
@@ -310,7 +310,7 @@
           </svg>
         </div>
         <div class="live-player-name">{{ match.opponent.username|default:match.opponent }}</div>
-        <div class="live-player-id">{{ match.opponent.bits_id|default:"OPPONENT" }}</div>
+        <div class="live-player-id">{{ match.opponent.username|default:"OPPONENT" }}</div>
       </div>
 
     </div>
