@@ -99,3 +99,17 @@ class Team(models.Model):
 
     def __str__(self):
         return f"{self.team_name} ({self.game.name})"
+
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+from django.core.cache import cache
+
+@receiver([post_save, post_delete], sender=PlayerRating)
+def clear_game_leaderboard_cache(sender, instance, **kwargs):
+    """
+    Invalidates the leaderboard cache for a game whenever a player's rating changes.
+    """
+    if instance.game_id:
+        cache_key = f"game_{instance.game_id}_top_10_leaderboard"
+        cache.delete(cache_key)
+

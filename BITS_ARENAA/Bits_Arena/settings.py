@@ -203,13 +203,16 @@ CACHES = {
         # Using Django's native Redis backend
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         
-        # URL where your Redis server is running (Localhost for development)
-        "LOCATION": "redis://127.0.0.1:6379",
+        # URL where your Redis server is running
+        "LOCATION": os.environ.get("REDIS_URL", "redis://127.0.0.1:6379/0"),
         
         # Optional: Useful configuration options
         "OPTIONS": {
-            "db": "0",  # Uses Redis database index 0
             "CLIENT_CLASS": "redis.Redis",
         }
     }
 }
+
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default" # Uses the 'default' cache defined above

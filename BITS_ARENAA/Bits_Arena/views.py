@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.core.cache import cache
 
 from players.models import Player, PlayerRating
 from arena.models import Match, Game
@@ -21,13 +22,18 @@ def home(request):
     user_stats = []
     
     for game in games:
-        leaderboard = list(PlayerRating.objects.filter(game=game).order_by('-rating'))
-        game.leaderboard = leaderboard
+        cache_key = f"game_{game.id}_top_10_leaderboard"
+        top_10 = cache.get(cache_key)
         
-        # Find current user's rating in this game
-        rating_obj = next((r for r in leaderboard if r.player == request.user), None)
+        if top_10 is None:
+            top_10 = list(PlayerRating.objects.filter(game=game).select_related('player').order_by('-rating')[:10])
+            cache.set(cache_key, top_10, timeout=86400)  # cache for 24 hours
+            
+        
+        # Find current user's rating and rank efficiently without loading the entire leaderboard
+        rating_obj = PlayerRating.objects.filter(game=game, player=request.user).first()
         if rating_obj:
-            rank = leaderboard.index(rating_obj) + 1
+            rank = PlayerRating.objects.filter(game=game, rating__gt=rating_obj.rating).count() + 1
             user_stats.append({
                 'game': game,
                 'rating': rating_obj.rating,
